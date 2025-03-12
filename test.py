@@ -26,6 +26,11 @@ def setup_chrome_options():
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920x1080")
     options.add_argument("--start-maximized")
+    # Streamlit Cloud 환경을 위한 추가 설정
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("--disable-extensions")
+    options.add_argument("--remote-debugging-port=9222")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     return options
 
 # API 모드 확인
@@ -383,6 +388,7 @@ def search_and_extract_data():
     try:
         with st.spinner("🔍 보고서를 검색하고 데이터를 추출 중입니다..."):
             options = setup_chrome_options()
+            # Streamlit Cloud 환경에서 ChromeDriver 설정
             service = Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
             wait = WebDriverWait(driver, 10)
