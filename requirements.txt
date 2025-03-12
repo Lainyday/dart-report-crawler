@@ -1,0 +1,5 @@
+streamlit==1.31.1
+selenium==4.17.2
+pandas==2.2.0
+webdriver_manager==4.0.1
+python-dotenv==1.0.1 

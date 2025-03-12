@@ -1,0 +1,15 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko">
+	<head>
+		<title>Download</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<script type="text/javascript" charset="utf-8">
+			alert("잘못된 다운로드 요청이 접수 되었습니다. 다시 시도해 주세요!");
+			history.back(1);
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
