@@ -30,7 +30,7 @@ def setup_chrome_options():
 
 # API 모드 확인
 def is_api_mode():
-    return 'api_request' in st.query_params
+    return 'api_request' in st.query_params and 'api_key' in st.query_params and st.query_params['api_key'] == 'dart_api_2024_secure_key_9x8q2w'
 
 # 결과를 JSON으로 변환하는 함수
 def convert_results_to_json(df):
@@ -317,13 +317,13 @@ def search_and_extract_data():
 
             driver.quit()
 
-            if result_data:
-                st.session_state.result_df = pd.DataFrame(result_data)
-                return True
-            else:
-                if not is_api_mode():
-                    st.warning("❌ 데이터를 추출할 수 없습니다.")
-                return False
+        if result_data:
+            st.session_state.result_df = pd.DataFrame(result_data)
+            return True
+        else:
+            if not is_api_mode():
+                st.warning("❌ 데이터를 추출할 수 없습니다.")
+            return False
                 
     except Exception as e:
         if not is_api_mode():
@@ -410,9 +410,12 @@ elif hasattr(st.session_state, 'result_df') and not st.session_state.result_df.e
     )
 
 else:
-    # API 모드
-    if search_and_extract_data():
-        result_json = convert_results_to_json(st.session_state.result_df)
-        st.json(result_json)
+    # API 인증 확인
+    if st.query_params['api_key'] == 'dart_api_2024_secure_key_9x8q2w':
+        if search_and_extract_data():
+            result_json = convert_results_to_json(st.session_state.result_df)
+            st.json(result_json)
+        else:
+            st.json({"error": "데이터 추출 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
     else:
-        st.json({"error": "데이터 추출 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}) 
+        st.json({"error": "인증 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}) 
