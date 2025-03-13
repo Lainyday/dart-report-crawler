@@ -33,12 +33,10 @@ def setup_chrome_options():
 
 # API 모드 확인
 def is_api_mode():
-    query_params = st.experimental_get_query_params()
-    return 'api_request' in query_params and query_params['api_request'][0].lower() == 'true'
+    return 'api_request' in st.query_params and st.query_params['api_request'] == 'true'
 
 def verify_api_key():
-    headers = st.experimental_get_query_params()
-    api_key = headers.get('api_key', [None])[0]
+    api_key = st.query_params.get('api_key', None)
     return api_key == 'dart_api_2024_secure_key_9x8q2w'
 
 # 결과를 JSON으로 변환하는 함수
