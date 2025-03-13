@@ -233,14 +233,20 @@ def search_dart_for_company(driver, wait, company_name, stock_code=None):
                             date_td = cols[4]
                             report_date = date_td.text.strip()
                             
-                            if target_report in report_title:
-                                rcpNo = report_href.split("rcpNo=")[-1].split("&")[0] if "rcpNo=" in report_href else None
-                                found_company_reports.append({
-                                    "공시대상회사": found_company,
-                                    "접수일자": report_date,
-                                    "보고서명": report_title,
-                                    "rcpNo": rcpNo
-                                })
+                            if target_report in report_title and report_href:
+                                try:
+                                    rcpNo = report_href.split("rcpNo=")[-1].split("&")[0] if "rcpNo=" in report_href else None
+                                    if rcpNo:  # rcpNo가 있는 경우에만 추가
+                                        found_company_reports.append({
+                                            "공시대상회사": found_company,
+                                            "접수일자": report_date,
+                                            "보고서명": report_title,
+                                            "rcpNo": rcpNo
+                                        })
+                                except Exception as e:
+                                    if not is_api_mode():
+                                        st.warning(f"보고서 번호 추출 중 오류: {str(e)}")
+                                    continue
                     except Exception:
                         continue
                 
