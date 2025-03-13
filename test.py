@@ -281,7 +281,8 @@ def search_and_extract_data():
         with st.spinner("🔍 보고서를 검색하고 데이터를 추출 중입니다..."):
             options = setup_chrome_options()
             try:
-                service = Service("/usr/lib/chromium/chromedriver")  # Debian의 chromedriver 경로로 수정
+                # ChromeDriverManager를 사용하여 드라이버 자동 관리
+                service = Service(ChromeDriverManager().install())
                 driver = webdriver.Chrome(service=service, options=options)
             except Exception as e:
                 if not is_api_mode():
