@@ -12,6 +12,9 @@ import re
 from datetime import datetime
 import json
 
+# 검색 설정
+target_report = "지급수단별ㆍ지급기간별지급금액및분쟁조정기구에관한사항"
+
 # Chrome WebDriver 설정 수정
 def setup_chrome_options():
     options = webdriver.ChromeOptions()
@@ -54,24 +57,6 @@ def convert_results_to_json(df):
         }
         return result
     return {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "total_count": 0, "data": []}
-
-# Streamlit 제목
-if is_api_mode():
-    # API 인증 확인
-    if verify_api_key():
-        if search_and_extract_data():
-            result_json = convert_results_to_json(st.session_state.result_df)
-            st.json(result_json)
-        else:
-            st.json({"error": "데이터 추출 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
-    else:
-        st.json({"error": "인증 실패: 유효하지 않은 API 키", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
-else:
-    st.title("📄 DART 보고서 크롤링 AI Agent")
-    st.subheader("DART 보고서를 자동으로 크롤링합니다.")
-
-# 검색 설정
-target_report = "지급수단별ㆍ지급기간별지급금액및분쟁조정기구에관한사항"
 
 # 결과 데이터프레임 초기화
 if 'result_df' not in st.session_state:
@@ -356,6 +341,9 @@ if is_api_mode():
     else:
         st.json({"error": "인증 실패: 유효하지 않은 API 키", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
 else:
+    st.title("📄 DART 보고서 크롤링 AI Agent")
+    st.subheader("DART 보고서를 자동으로 크롤링합니다.")
+    
     if st.button("DART 보고서 검색 및 데이터 추출", key="search_button"):
         if search_and_extract_data():
             st.success(f"✅ 총 {len(st.session_state.result_df)}개의 보고서 데이터를 추출했습니다.")
@@ -394,41 +382,42 @@ else:
                 file_name="dart_report_data.csv",
                 mime="text/csv"
             )
-
-elif hasattr(st.session_state, 'result_df') and not st.session_state.result_df.empty:
-    st.success(f"✅ 총 {len(st.session_state.result_df)}개의 보고서 데이터가 있습니다.")
     
-    # 저장된 데이터프레임 표시
-    st.markdown("### 📊 추출 결과")
-    st.dataframe(
-        st.session_state.result_df,
-        column_config={
-            "현금_수표_지급금액": st.column_config.NumberColumn(
-                "현금 및 수표 지급금액",
-                format="%d",
-                help="단위: 천원"
-            ),
-            "현금_수표_비중": st.column_config.NumberColumn(
-                "현금 및 수표 비중",
-                format="%.2f%%"
-            ),
-            "초과지급금액": st.column_config.NumberColumn(
-                "60일 초과 지급금액",
-                format="%d",
-                help="단위: 천원"
-            ),
-            "초과지급비중": st.column_config.NumberColumn(
-                "60일 초과 비중",
-                format="%.2f%%"
-            )
-        }
-    )
-    
-    # CSV 다운로드 버튼
-    csv = st.session_state.result_df.to_csv(index=False).encode('utf-8-sig')
-    st.download_button(
-        label="📥 CSV 파일 다운로드",
-        data=csv,
-        file_name="dart_report_data.csv",
-        mime="text/csv"
-    ) 
+    # 이전 결과가 있는 경우 표시
+    elif hasattr(st.session_state, 'result_df') and not st.session_state.result_df.empty:
+        st.success(f"✅ 총 {len(st.session_state.result_df)}개의 보고서 데이터가 있습니다.")
+        
+        # 데이터프레임 표시
+        st.markdown("### 📊 추출 결과")
+        st.dataframe(
+            st.session_state.result_df,
+            column_config={
+                "현금_수표_지급금액": st.column_config.NumberColumn(
+                    "현금 및 수표 지급금액",
+                    format="%d",
+                    help="단위: 천원"
+                ),
+                "현금_수표_비중": st.column_config.NumberColumn(
+                    "현금 및 수표 비중",
+                    format="%.2f%%"
+                ),
+                "초과지급금액": st.column_config.NumberColumn(
+                    "60일 초과 지급금액",
+                    format="%d",
+                    help="단위: 천원"
+                ),
+                "초과지급비중": st.column_config.NumberColumn(
+                    "60일 초과 비중",
+                    format="%.2f%%"
+                )
+            }
+        )
+        
+        # CSV 다운로드 버튼
+        csv = st.session_state.result_df.to_csv(index=False).encode('utf-8-sig')
+        st.download_button(
+            label="📥 CSV 파일 다운로드",
+            data=csv,
+            file_name="dart_report_data.csv",
+            mime="text/csv"
+        ) 
