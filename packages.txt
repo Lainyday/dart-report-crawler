@@ -5,4 +5,7 @@ libnss3
 libgconf-2-4
 libfontconfig1
 wget
-unzip 
+unzip
+google-chrome-stable
+chromium-browser
+chromium-chromedriver 

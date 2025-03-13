@@ -28,6 +28,7 @@ def setup_chrome_options():
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument("--disable-extensions")
     options.add_argument("--remote-debugging-port=9222")
+    options.binary_location = "/usr/bin/chromium-browser"  # Chromium 브라우저 위치 지정
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     return options
 
@@ -279,8 +280,13 @@ def search_and_extract_data():
     try:
         with st.spinner("🔍 보고서를 검색하고 데이터를 추출 중입니다..."):
             options = setup_chrome_options()
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=options)
+            try:
+                service = Service("/usr/bin/chromedriver")  # Chromium 드라이버 위치 지정
+                driver = webdriver.Chrome(service=service, options=options)
+            except Exception as e:
+                if not is_api_mode():
+                    st.error(f"Chrome 드라이버 초기화 중 오류: {str(e)}")
+                return False
             wait = WebDriverWait(driver, 10)
             
             # 종목코드가 있는 회사 먼저 검색
