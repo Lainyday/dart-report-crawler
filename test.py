@@ -28,7 +28,7 @@ def setup_chrome_options():
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument("--disable-extensions")
     options.add_argument("--remote-debugging-port=9222")
-    options.binary_location = "/usr/bin/chromium-browser"  # Chromium 브라우저 위치 지정
+    options.binary_location = "/usr/bin/chromium"  # Debian의 chromium 경로로 수정
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     return options
 
@@ -281,7 +281,7 @@ def search_and_extract_data():
         with st.spinner("🔍 보고서를 검색하고 데이터를 추출 중입니다..."):
             options = setup_chrome_options()
             try:
-                service = Service("/usr/bin/chromedriver")  # Chromium 드라이버 위치 지정
+                service = Service("/usr/lib/chromium/chromedriver")  # Debian의 chromedriver 경로로 수정
                 driver = webdriver.Chrome(service=service, options=options)
             except Exception as e:
                 if not is_api_mode():
