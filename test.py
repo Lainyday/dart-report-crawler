@@ -233,16 +233,25 @@ def search_dart_for_company(driver, wait, company_name, stock_code=None):
                             date_td = cols[4]
                             report_date = date_td.text.strip()
                             
-                            if target_report in report_title and report_href:
+                            if target_report in report_title and report_href and isinstance(report_href, str):
                                 try:
-                                    rcpNo = report_href.split("rcpNo=")[-1].split("&")[0] if "rcpNo=" in report_href else None
-                                    if rcpNo:  # rcpNo가 있는 경우에만 추가
-                                        found_company_reports.append({
-                                            "공시대상회사": found_company,
-                                            "접수일자": report_date,
-                                            "보고서명": report_title,
-                                            "rcpNo": rcpNo
-                                        })
+                                    # rcpNo 추출 로직 개선
+                                    if "rcpNo=" not in report_href:
+                                        continue
+                                        
+                                    rcpNo = report_href.split("rcpNo=")[-1]
+                                    if "&" in rcpNo:
+                                        rcpNo = rcpNo.split("&")[0]
+                                        
+                                    if not rcpNo:  # rcpNo가 빈 문자열인 경우
+                                        continue
+                                        
+                                    found_company_reports.append({
+                                        "공시대상회사": found_company,
+                                        "접수일자": report_date,
+                                        "보고서명": report_title,
+                                        "rcpNo": rcpNo
+                                    })
                                 except Exception as e:
                                     if not is_api_mode():
                                         st.warning(f"보고서 번호 추출 중 오류: {str(e)}")
