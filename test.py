@@ -30,7 +30,11 @@ def setup_chrome_options():
 
 # API 모드 확인
 def is_api_mode():
-    return 'api_request' in st.query_params and 'api_key' in st.query_params and st.query_params['api_key'] == 'dart_api_2024_secure_key_9x8q2w'
+    return 'api_request' in st.query_params and st.experimental_get_query_params().get('api_request', [None])[0] == 'true'
+
+def verify_api_key():
+    api_key = st.request_headers.get('X-API-Key')
+    return api_key == 'dart_api_2024_secure_key_9x8q2w'
 
 # 결과를 JSON으로 변환하는 함수
 def convert_results_to_json(df):
@@ -411,11 +415,11 @@ elif hasattr(st.session_state, 'result_df') and not st.session_state.result_df.e
 
 else:
     # API 인증 확인
-    if st.query_params['api_key'] == 'dart_api_2024_secure_key_9x8q2w':
+    if verify_api_key():
         if search_and_extract_data():
             result_json = convert_results_to_json(st.session_state.result_df)
             st.json(result_json)
         else:
             st.json({"error": "데이터 추출 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
     else:
-        st.json({"error": "인증 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}) 
+        st.json({"error": "인증 실패: 유효하지 않은 API 키", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}) 
