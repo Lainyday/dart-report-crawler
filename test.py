@@ -6,7 +6,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.utils import ChromeType
 import time
 import pandas as pd
 import re
@@ -282,8 +281,8 @@ def search_and_extract_data():
         with st.spinner("🔍 보고서를 검색하고 데이터를 추출 중입니다..."):
             options = setup_chrome_options()
             try:
-                # Chromium 드라이버 설정
-                service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+                # ChromeDriver 설정
+                service = Service("/usr/bin/chromedriver")
                 driver = webdriver.Chrome(service=service, options=options)
             except Exception as e:
                 if not is_api_mode():
