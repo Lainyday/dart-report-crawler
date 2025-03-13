@@ -30,7 +30,7 @@ def setup_chrome_options():
 
 # API 모드 확인
 def is_api_mode():
-    return 'api_request' in st.query_params and st.experimental_get_query_params().get('api_request', [None])[0] == 'true'
+    return bool(st.request_headers.get('X-API-Key'))
 
 def verify_api_key():
     api_key = st.request_headers.get('X-API-Key')
@@ -56,7 +56,17 @@ def convert_results_to_json(df):
     return {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "total_count": 0, "data": []}
 
 # Streamlit 제목
-if not is_api_mode():
+if is_api_mode():
+    # API 인증 확인
+    if verify_api_key():
+        if search_and_extract_data():
+            result_json = convert_results_to_json(st.session_state.result_df)
+            st.json(result_json)
+        else:
+            st.json({"error": "데이터 추출 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+    else:
+        st.json({"error": "인증 실패: 유효하지 않은 API 키", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+else:
     st.title("📄 DART 보고서 크롤링 AI Agent")
     st.subheader("DART 보고서를 자동으로 크롤링합니다.")
 
@@ -335,7 +345,17 @@ def search_and_extract_data():
         return False
 
 # 메인 UI 부분
-if not is_api_mode():
+if is_api_mode():
+    # API 인증 확인
+    if verify_api_key():
+        if search_and_extract_data():
+            result_json = convert_results_to_json(st.session_state.result_df)
+            st.json(result_json)
+        else:
+            st.json({"error": "데이터 추출 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+    else:
+        st.json({"error": "인증 실패: 유효하지 않은 API 키", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+else:
     if st.button("DART 보고서 검색 및 데이터 추출", key="search_button"):
         if search_and_extract_data():
             st.success(f"✅ 총 {len(st.session_state.result_df)}개의 보고서 데이터를 추출했습니다.")
@@ -411,15 +431,4 @@ elif hasattr(st.session_state, 'result_df') and not st.session_state.result_df.e
         data=csv,
         file_name="dart_report_data.csv",
         mime="text/csv"
-    )
-
-else:
-    # API 인증 확인
-    if verify_api_key():
-        if search_and_extract_data():
-            result_json = convert_results_to_json(st.session_state.result_df)
-            st.json(result_json)
-        else:
-            st.json({"error": "데이터 추출 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
-    else:
-        st.json({"error": "인증 실패: 유효하지 않은 API 키", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}) 
+    ) 
