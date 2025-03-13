@@ -1,5 +1,8 @@
 chromium
 chromium-driver
 xvfb
+libnss3
+libgconf-2-4
+libfontconfig1
 wget
 unzip 
