@@ -14,8 +14,7 @@ import json
 import requests
 
 # 웹훅으로 데이터 전송하는 함수
-def send_to_webhook(data):
-    webhook_url = "https://hook.eu2.make.com/2r7gjnxaq0sf0i3cj8adt0lew6sg3k4o"
+def send_to_webhook(data, webhook_url="https://hook.eu2.make.com/2r7gjnxaq0sf0i3cj8adt0lew6sg3k4o"):
     try:
         # 디버깅을 위한 로그 추가
         print(f"웹훅 전송 시도: {webhook_url}")
@@ -374,6 +373,18 @@ def search_and_extract_data():
 
         if result_data:
             st.session_state.result_df = pd.DataFrame(result_data)
+            
+            # 데이터 추출 완료 후 자동으로 웹훅으로 데이터 전송
+            if not is_api_mode():  # API 모드가 아닐 때만 자동 전송 (API 모드에서는 별도로 처리)
+                with st.spinner("🚀 추출된 데이터를 Make.com으로 전송 중..."):
+                    result_json = convert_results_to_json(st.session_state.result_df)
+                    webhook_success = send_to_webhook(result_json)
+                    
+                    if webhook_success:
+                        st.success("✅ 데이터가 성공적으로 Make.com으로 전송되었습니다!")
+                    else:
+                        st.error("❌ 데이터 전송에 실패했습니다. 로그를 확인하세요.")
+            
             return True
         else:
             if not is_api_mode():
