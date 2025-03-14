@@ -8,6 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import pandas as pd
+import numpy as np
 import re
 from datetime import datetime
 import json
@@ -104,8 +105,8 @@ def convert_results_to_json(df):
             record = {}
             for col in df_eng.columns:
                 val = row[col]
-                # NaN, Infinity 값 처리
-                if isinstance(val, float) and (pd.isna(val) or pd.isinf(val)):
+                # NaN, Infinity 값 처리 (numpy 사용)
+                if isinstance(val, float) and (pd.isna(val) or np.isinf(val)):
                     record[col] = None
                 else:
                     record[col] = val
