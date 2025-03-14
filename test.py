@@ -11,6 +11,7 @@ import pandas as pd
 import re
 from datetime import datetime
 import json
+import requests
 
 # 검색 설정
 target_report = "지급수단별ㆍ지급기간별지급금액및분쟁조정기구에관한사항"
@@ -51,10 +52,22 @@ def convert_results_to_json(df):
         for col in ['현금_수표_비중', '초과지급비중']:
             df[col] = df[col].astype(float)
         
+        # 영문 필드명으로 변환
+        df_eng = df.copy()
+        df_eng.columns = [
+            'company',
+            'report_date',
+            'cash_check_amount',
+            'cash_check_ratio',
+            'excess_amount',
+            'excess_ratio',
+            'dispute_resolution'
+        ]
+        
         result = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "total_count": len(df),
-            "data": df.to_dict('records')
+            "data": df_eng.to_dict('records')
         }
         return result
     return {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "total_count": 0, "data": []}
@@ -357,7 +370,13 @@ if is_api_mode():
     if verify_api_key():
         if search_and_extract_data():
             result_json = convert_results_to_json(st.session_state.result_df)
-            st.json(result_json)
+            
+            # 웹훅으로 데이터 전송
+            webhook_success = send_to_webhook(result_json)
+            if webhook_success:
+                st.json({"status": "success", "message": "데이터가 성공적으로 전송되었습니다.", "data": result_json})
+            else:
+                st.json({"status": "warning", "message": "데이터 추출은 성공했으나 웹훅 전송에 실패했습니다.", "data": result_json})
         else:
             st.json({"error": "데이터 추출 실패", "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
     else:
@@ -442,4 +461,15 @@ else:
             data=csv,
             file_name="dart_report_data.csv",
             mime="text/csv"
-        ) 
+        )
+
+# 웹훅으로 데이터 전송하는 함수
+def send_to_webhook(data):
+    webhook_url = "https://hook.eu2.make.com/2r7gjnxaq0sf0i3cj8adt0lew6sg3k4o"
+    try:
+        response = requests.post(webhook_url, json=data)
+        return response.status_code == 200
+    except Exception as e:
+        if not is_api_mode():
+            st.error(f"웹훅 전송 중 오류: {str(e)}")
+        return False 
