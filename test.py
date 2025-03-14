@@ -66,14 +66,28 @@ def convert_results_to_json(df):
     if df is not None and not df.empty:
         # 날짜 형식 변환
         df['접수일자'] = pd.to_datetime(df['접수일자']).dt.strftime('%Y-%m-%d')
-        # 숫자 형식 변환
+        
+        # 데이터프레임 복사
+        df_clean = df.copy()
+        
+        # NaN 값을 None으로 변환
+        df_clean = df_clean.replace({float('nan'): None, float('inf'): None, float('-inf'): None})
+        
+        # 숫자 형식 변환 및 특수 값 처리
         for col in ['현금_수표_지급금액', '초과지급금액']:
-            df[col] = df[col].astype(float)
+            # 문자열을 숫자로 변환
+            df_clean[col] = pd.to_numeric(df_clean[col], errors='coerce')
+            # NaN 값을 None으로 변환
+            df_clean[col] = df_clean[col].where(df_clean[col].notna(), None)
+            
         for col in ['현금_수표_비중', '초과지급비중']:
-            df[col] = df[col].astype(float)
+            # 문자열을 숫자로 변환
+            df_clean[col] = pd.to_numeric(df_clean[col], errors='coerce')
+            # NaN 값을 None으로 변환
+            df_clean[col] = df_clean[col].where(df_clean[col].notna(), None)
         
         # 영문 필드명으로 변환
-        df_eng = df.copy()
+        df_eng = df_clean.copy()
         df_eng.columns = [
             'company',
             'report_date',
@@ -84,10 +98,23 @@ def convert_results_to_json(df):
             'dispute_resolution'
         ]
         
+        # 딕셔너리로 변환 시 NaN 값을 None으로 처리
+        records = []
+        for _, row in df_eng.iterrows():
+            record = {}
+            for col in df_eng.columns:
+                val = row[col]
+                # NaN, Infinity 값 처리
+                if isinstance(val, float) and (pd.isna(val) or pd.isinf(val)):
+                    record[col] = None
+                else:
+                    record[col] = val
+            records.append(record)
+        
         result = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "total_count": len(df),
-            "data": df_eng.to_dict('records')
+            "data": records
         }
         return result
     return {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "total_count": 0, "data": []}
