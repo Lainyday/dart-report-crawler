@@ -13,6 +13,27 @@ from datetime import datetime
 import json
 import requests
 
+# 웹훅으로 데이터 전송하는 함수
+def send_to_webhook(data):
+    webhook_url = "https://hook.eu2.make.com/2r7gjnxaq0sf0i3cj8adt0lew6sg3k4o"
+    try:
+        # 디버깅을 위한 로그 추가
+        print(f"웹훅 전송 시도: {webhook_url}")
+        print(f"전송 데이터: {json.dumps(data, ensure_ascii=False)}")
+        
+        response = requests.post(webhook_url, json=data)
+        
+        # 응답 상태 코드 및 내용 로깅
+        print(f"웹훅 응답 상태 코드: {response.status_code}")
+        print(f"웹훅 응답 내용: {response.text}")
+        
+        return response.status_code == 200
+    except Exception as e:
+        print(f"웹훅 전송 중 오류 발생: {str(e)}")
+        if not is_api_mode():
+            st.error(f"웹훅 전송 중 오류: {str(e)}")
+        return False
+
 # 검색 설정
 target_report = "지급수단별ㆍ지급기간별지급금액및분쟁조정기구에관한사항"
 
@@ -385,6 +406,30 @@ else:
     st.title("📄 DART 보고서 크롤링 AI Agent")
     st.subheader("DART 보고서를 자동으로 크롤링합니다.")
     
+    # 웹훅 테스트 버튼 추가
+    if st.button("웹훅 테스트", key="webhook_test"):
+        test_data = {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "total_count": 1,
+            "data": [
+                {
+                    "company": "테스트 주식회사",
+                    "report_date": "2024-03-13",
+                    "cash_check_amount": 1000000,
+                    "cash_check_ratio": 80.5,
+                    "excess_amount": 200000,
+                    "excess_ratio": 20.5,
+                    "dispute_resolution": "설치"
+                }
+            ]
+        }
+        
+        webhook_success = send_to_webhook(test_data)
+        if webhook_success:
+            st.success("✅ 웹훅 테스트 성공! Make.com에서 데이터를 확인하세요.")
+        else:
+            st.error("❌ 웹훅 테스트 실패. 로그를 확인하세요.")
+    
     if st.button("DART 보고서 검색 및 데이터 추출", key="search_button"):
         if search_and_extract_data():
             st.success(f"✅ 총 {len(st.session_state.result_df)}개의 보고서 데이터를 추출했습니다.")
@@ -461,15 +506,4 @@ else:
             data=csv,
             file_name="dart_report_data.csv",
             mime="text/csv"
-        )
-
-# 웹훅으로 데이터 전송하는 함수
-def send_to_webhook(data):
-    webhook_url = "https://hook.eu2.make.com/2r7gjnxaq0sf0i3cj8adt0lew6sg3k4o"
-    try:
-        response = requests.post(webhook_url, json=data)
-        return response.status_code == 200
-    except Exception as e:
-        if not is_api_mode():
-            st.error(f"웹훅 전송 중 오류: {str(e)}")
-        return False 
+        ) 
